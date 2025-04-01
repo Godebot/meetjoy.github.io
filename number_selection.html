@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数字选择器</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Comic+Neue:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: "Comic Sans MS", cursive, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: black;
+            position: relative;
+        }
+
+        h1 {
+            font-family: 'Pacifico', cursive;
+            font-size: 80px;
+            background: linear-gradient(45deg, #FF1493, #9400D3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 3px 3px 8px rgba(255, 255, 255, 0.7);
+            margin-bottom: 30px;
+            border-radius: 20px;
+            padding: 10px 20px;
+            display: inline-block;
+            /* 让 MEETJOY 有棉花糖的模糊感 */
+            filter: blur(1px);
+            -webkit-filter: blur(1px);
+        }
+
+        .number-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 25px;
+            margin: 20px 0;
+            max-width: 280px;
+            perspective: 1000px;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 20px;
+        }
+
+        .number {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            background-color: #FF69B4;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transform: rotate(-45deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+        }
+
+        .number:before,
+        .number:after {
+            content: "";
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-color: #FF69B4;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .number:before {
+            top: -20px;
+            left: 0;
+        }
+
+        .number:after {
+            left: 20px;
+            top: 0;
+        }
+
+        .number span {
+            transform: rotate(45deg);
+            z-index: 1;
+            font-size: 16px;
+            font-family: 'Pacifico', cursive;
+        }
+
+        .number:hover {
+            transform: rotate(-45deg) scale(1.2) rotateX(15deg) rotateY(15deg);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+        }
+
+        .number:hover:before,
+        .number:hover:after {
+            background-color: #FF1493;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #8B008B;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            animation: fadeInAnimation 1s ease;
+        }
+
+        @keyframes fadeInAnimation {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        #admin-button {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background-color: #8B008B;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #admin-button:hover {
+            background-color: #6A006A;
+        }
+
+        #admin-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        #admin-modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 80%;
+            max-height: 80%;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        #close-modal {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: transparent;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .confirmation {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .confirmation button {
+            margin: 0 5px;
+            padding: 5px 10px;
+            background-color: #8B008B;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .confirmation button:hover {
+            background-color: #6A006A;
+            transform: scale(1.1);
+        }
+
+        .confirmation button:active {
+            background-color: #4B004B;
+            transform: scale(0.95);
+        }
+
+        .confirmation button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            transform: scale(1);
+        }
+
+        .delete-button {
+            margin-left: 10px;
+            background-color: #FF6347;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 3px 6px;
+            cursor: pointer;
+        }
+
+        .delete-button:hover {
+            background-color: #FF4500;
+        }
+
+        #gender-selection {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 20px;
+        }
+
+        #gender-selection button {
+            padding: 15px 30px;
+            background-color: #8B008B;
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Pacifico', cursive;
+            font-size: 24px;
+        }
+
+        #gender-selection button:hover {
+            background-color: #6A006A;
+            transform: scale(1.1);
+        }
+
+        #gender-selection button:active {
+            background-color: #4B004B;
+            transform: scale(0.95);
+        }
+
+        .matched {
+            color: #FF1493;
+        }
+
+        .boy-record {
+            background-color: lightblue;
+        }
+
+        .pink-bg {
+            background: linear-gradient(135deg, #FFB6C1, #FF69B4);
+        }
+
+        .blue-bg {
+            background: linear-gradient(135deg, lightblue, #ADD8E6);
+        }
+
+        .pink-number {
+            background-color: #FF69B4;
+        }
+
+        .pink-number:before,
+        .pink-number:after {
+            background-color: #FF69B4;
+        }
+
+        .pink-number:hover:before,
+        .pink-number:hover:after {
+            background-color: #FF1493;
+        }
+
+        .blue-number {
+            background-color: lightblue;
+        }
+
+        .blue-number:before,
+        .blue-number:after {
+            background-color: lightblue;
+        }
+
+        .blue-number:hover:before,
+        .blue-number:hover:after {
+            background-color: #00BFFF;
+        }
+
+        /* 让 WHO ARE U 和 WHO U LIKE 背景为黑色 */
+        #user-prompt,
+        #crush-prompt {
+            background-color: black;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>MEETJOY</h1>
+    <div id="gender-selection">
+        <button id="select-girl">GIRL</button>
+        <button id="select-boy">BOY</button>
+    </div>
+    <p id="user-prompt" style="display: none;">WHO ARE U</p>
+    <div class="number-container" id="user-number-container" style="display: none;"></div>
+    <div class="confirmation" id="user-confirmation" style="display: none;">
+        <span id="selected-user-display"></span>
+        <button id="confirm-user">YES</button>
+        <button id="cancel-user">NO</button>
+    </div>
+    <p id="crush-prompt" style="display: none;">WHO U LIKE</p>
+    <div class="number-container" id="crush-number-container" style="display: none;"></div>
+    <div class="confirmation" id="crush-confirmation" style="display: none;">
+        <span id="selected-crush-display"></span>
+        <button id="confirm-crush">YES</button>
+        <button id="cancel-crush">NO</button>
+    </div>
+    <div id="result"></div>
+    <button id="admin-button">❤</button>
+    <div id="admin-modal">
+        <div id="admin-modal-content">
+            <button id="close-modal">&times;</button>
+            <ul id="admin-records"></ul>
+        </div>
+    </div>
+
+    <script>
+        const genderSelection = document.getElementById('gender-selection');
+        const selectGirl = document.getElementById('select-girl');
+        const selectBoy = document.getElementById('select-boy');
+        const userPrompt = document.getElementById('user-prompt');
+        const userNumberContainer = document.getElementById('user-number-container');
+        const userConfirmation = document.getElementById('user-confirmation');
+        const selectedUserDisplay = document.getElementById('selected-user-display');
+        const confirmUser = document.getElementById('confirm-user');
+        const cancelUser = document.getElementById('cancel-user');
+        const crushPrompt = document.getElementById('crush-prompt');
+        const crushNumberContainer = document.getElementById('crush-number-container');
+        const crushConfirmation = document.getElementById('crush-confirmation');
+        const selectedCrushDisplay = document.getElementById('selected-crush-display');
+        const confirmCrush = document.getElementById('confirm-crush');
+        const cancelCrush = document.getElementById('cancel-crush');
+        const resultDiv = document.getElementById('result');
+        const adminButton = document.getElementById('admin-button');
+        const adminModal = document.getElementById('admin-modal');
+        const closeModal = document.getElementById('close-modal');
+        const adminRecords = document.getElementById('admin-records');
+
+        let selectedUserNumber = null;
+        let selectedCrushNumber = null;
+        let selectedGender = null;
+
+        // 生成按钮的函数
+        function generateButtons(container, start, end, isPink) {
+            container.innerHTML = '';
+            for (let i = start; i <= end; i++) {
+                const button = document.createElement('button');
+                button.classList.add('number');
+                if (isPink) {
+                    button.classList.add('pink-number');
+                } else {
+                    button.classList.add('blue-number');
+                }
+                const span = document.createElement('span');
+                span.textContent = i;
+                button.appendChild(span);
+                button.addEventListener('click', () => {
+                    if (container === userNumberContainer) {
+                        selectedUserNumber = i;
+                        selectedUserDisplay.textContent = `YOU CHOOSE: ${i}`;
+                        userConfirmation.style.display = 'block';
+                        confirmUser.disabled = false;
+                        cancelUser.disabled = false;
+                    } else {
+                        selectedCrushNumber = i;
+                        selectedCrushDisplay.textContent = `YOU CHOOSE: ${i}`;
+                        crushConfirmation.style.display = 'block';
+                        confirmCrush.disabled = false;
+                        cancelCrush.disabled = false;
+                    }
+                });
+                container.appendChild(button);
+            }
+        }
+
+        // 选择女孩
+        selectGirl.addEventListener('click', () => {
+            selectedGender = 'GIRL';
+            genderSelection.style.display = 'none';
+            userPrompt.style.display = 'block';
+            userNumberContainer.style.display = 'flex';
+            document.body.classList.add('pink-bg');
+            document.body.classList.remove('blue-bg');
+            generateButtons(userNumberContainer, 1, 20, true);
+        });
+
+        // 选择男孩
+        selectBoy.addEventListener('click', () => {
+            selectedGender = 'BOY';
+            genderSelection.style.display = 'none';
+            userPrompt.style.display = 'block';
+            userNumberContainer.style.display = 'flex';
+            document.body.classList.add('blue-bg');
+            document.body.classList.remove('pink-bg');
+            generateButtons(userNumberContainer, 21, 40, false);
+        });
+
+        // 确认用户编号选择
+        confirmUser.addEventListener('click', () => {
+            userPrompt.style.display = 'none';
+            userNumberContainer.style.display = 'none';
+            userConfirmation.style.display = 'none';
+            crushPrompt.style.display = 'block';
+            crushNumberContainer.style.display = 'flex';
+            confirmUser.disabled = true;
+            cancelUser.disabled = true;
+            if (selectedGender === 'GIRL') {
+                document.body.classList.add('blue-bg');
+                document.body.classList.remove('pink-bg');
+                generateButtons(crushNumberContainer, 21, 40, false);
+            } else {
+                document.body.classList.add('pink-bg');
+                document.body.classList.remove('blue-bg');
+                generateButtons(crushNumberContainer, 1, 20, true);
+            }
+        });
+
+        // 取消用户编号选择
+        cancelUser.addEventListener('click', () => {
+            selectedUserNumber = null;
+            selectedUserDisplay.textContent = '';
+            userConfirmation.style.display = 'none';
+            confirmUser.disabled = true;
+            cancelUser.disabled = true;
+            genderSelection.style.display = 'block';
+            userPrompt.style.display = 'none';
+            userNumberContainer.style.display = 'none';
+            document.body.classList.remove('pink-bg', 'blue-bg');
+            document.body.style.backgroundColor = 'black';
+        });
+
+        // 确认心动嘉宾选择
+        confirmCrush.addEventListener('click', () => {
+            const record = {
+                userNumber: selectedUserNumber,
+                crushNumber: selectedCrushNumber,
+                gender: selectedGender
+            };
+            let records = JSON.parse(localStorage.getItem('records')) || [];
+            records.push(record);
+            localStorage.setItem('records', JSON.stringify(records));
+            crushPrompt.style.display = 'none';
+            crushNumberContainer.style.display = 'none';
+            crushConfirmation.style.display = 'none';
+            selectedUserNumber = null;
+            selectedCrushNumber = null;
+            selectedGender = null;
+            genderSelection.style.display = 'block';
+            userPrompt.style.display = 'none';
+            userNumberContainer.style.display = 'none';
+            confirmCrush.disabled = true;
+            cancelCrush.disabled = true;
+            document.body.classList.remove('pink-bg', 'blue-bg');
+            document.body.style.backgroundColor = 'black';
+        });
+
+        // 取消心动嘉宾选择
+        cancelCrush.addEventListener('click', () => {
+            selectedCrushNumber = null;
+            selectedCrushDisplay.textContent = '';
+            crushConfirmation.style.display = 'none';
+            confirmCrush.disabled = true;
+            cancelCrush.disabled = true;
+            userPrompt.style.display = 'block';
+            userNumberContainer.style.display = 'flex';
+            if (selectedGender === 'GIRL') {
+                document.body.classList.add('pink-bg');
+                document.body.classList.remove('blue-bg');
+                generateButtons(userNumberContainer, 1, 20, true);
+            } else {
+                document.body.classList.add('blue-bg');
+                document.body.classList.remove('pink-bg');
+                generateButtons(userNumberContainer, 21, 40, false);
+            }
+            crushPrompt.style.display = 'none';
+            crushNumberContainer.style.display = 'none';
+        });
+
+        // 管理员按钮点击事件
+        adminButton.addEventListener('click', () => {
+            adminModal.style.display = 'flex';
+            const records = JSON.parse(localStorage.getItem('records')) || [];
+            const matchedPairs = [];
+            const unmatchedRecords = [];
+
+            // 找出互选记录
+            for (let i = 0; i < records.length; i++) {
+                const record1 = records[i];
+                for (let j = i + 1; j < records.length; j++) {
+                    const record2 = records[j];
+                    if ((record1.gender === 'GIRL' && record2.gender === 'BOY' && record1.userNumber === record2.crushNumber && record1.crushNumber === record2.userNumber) ||
+                        (record1.gender === 'BOY' && record2.gender === 'GIRL' && record1.userNumber === record2.crushNumber && record1.crushNumber === record2.userNumber)) {
+                        const pairKey = `${Math.min(record1.userNumber, record2.userNumber)}-${Math.max(record1.userNumber, record2.userNumber)}`;
+                        if (!matchedPairs.some(pair => pair.key === pairKey)) {
+                            matchedPairs.push({
+                                key: pairKey,
+                                girlNumber: record1.gender === 'GIRL'? record1.userNumber : record2.userNumber,
+                                boyNumber: record1.gender === 'BOY'? record1.userNumber : record2.userNumber
+                            });
+                        }
+                    }
+                }
+            }
+
+            // 找出非互选记录
+            for (let record of records) {
+                let isMatched = false;
+                for (let pair of matchedPairs) {
+                    if (record.userNumber === pair.girlNumber || record.userNumber === pair.boyNumber) {
+                        isMatched = true;
+                        break;
+                    }
+                }
+                if (!isMatched) {
+                    unmatchedRecords.push(record);
+                }
+            }
+
+            adminRecords.innerHTML = '';
+            // 显示互选记录
+            matchedPairs.forEach((pair, index) => {
+                const li = document.createElement('li');
+                li.textContent = `Girl#${pair.girlNumber} Match Boy#${pair.boyNumber}`;
+                li.classList.add('matched');
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = '删除';
+                deleteButton.classList.add('delete-button');
+                deleteButton.addEventListener('click', () => {
+                    const newRecords = records.filter(r => r.userNumber!== pair.girlNumber && r.userNumber!== pair.boyNumber);
+                    localStorage.setItem('records', JSON.stringify(newRecords));
+                    adminButton.click();
+                });
+                li.appendChild(deleteButton);
+                adminRecords.appendChild(li);
+            });
+
+            // 显示非互选记录
+            unmatchedRecords.forEach((record, index) => {
+                const li = document.createElement('li');
+                li.textContent = `${record.gender === 'GIRL'? 'Girl' : 'Boy'} #${record.userNumber} Choose ${record.gender === 'GIRL'? 'Boy' : 'Girl'} #${record.crushNumber}`;
+                if (record.gender === 'BOY') {
+                    li.classList.add('boy-record');
+                }
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = '删除';
+                deleteButton.classList.add('delete-button');
+                deleteButton.addEventListener('click', () => {
+                    const newRecords = records.filter(r => r.userNumber!== record.userNumber);
+                    localStorage.setItem('records', JSON.stringify(newRecords));
+                    adminButton.click();
+                });
+                li.appendChild(deleteButton);
+                adminRecords.appendChild(li);
+            });
+        });
+
+        // 关闭管理员模态框
+        closeModal.addEventListener('click', () => {
+            adminModal.style.display = 'none';
+        });
+    </script>
+</body>
+
+</html>    
